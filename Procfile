@@ -1,1 +1,1 @@
-web: gunicorn trinetra_web.wsgi
+web: gunicorn trinetra_web.wsgi --log-file -
