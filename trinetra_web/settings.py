@@ -66,10 +66,13 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "trinetra_web.wsgi.application"
 
-default_sqlite_path = BASE_DIR / "data" / "trinetra_scans.db"
+# Database Configuration
+# For production (Render, Heroku, etc.), set DATABASE_URL environment variable
+# Otherwise, uses SQLite locally (NOT recommended for production PaaS)
 database_url = os.getenv("DATABASE_URL", "").strip()
 
 if database_url:
+    # Use PostgreSQL/external database (recommended for production)
     DATABASES = {
         "default": dj_database_url.parse(
             database_url,
@@ -78,6 +81,10 @@ if database_url:
         )
     }
 else:
+    # Fallback to SQLite (local development only)
+    # WARNING: On Render/Heroku, data in data/ directory is ephemeral and will be lost on restart
+    default_sqlite_path = BASE_DIR / "data" / "trinetra_scans.db"
+    (BASE_DIR / "data").mkdir(exist_ok=True)  # Ensure data directory exists
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.sqlite3",

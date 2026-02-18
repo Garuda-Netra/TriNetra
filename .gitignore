@@ -20,6 +20,9 @@ media/
 .DS_Store
 Thumbs.db
 
+# Environment
+.env
+
 # Logs
 *.log
 .venv/

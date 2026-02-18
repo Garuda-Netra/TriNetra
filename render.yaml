@@ -1,0 +1,27 @@
+services:
+  - type: web
+    name: trinetra
+    env: python
+    pythonVersion: 3.11
+    buildCommand: pip install -r requirements.txt && python manage.py collectstatic --noinput && python manage.py migrate
+    startCommand: gunicorn trinetra_web.wsgi --log-file -
+    domains:
+      - trinetra.onrender.com
+    envVars:
+      - key: SECRET_KEY
+        sync: false
+      - key: DEBUG
+        value: "false"
+      - key: ALLOWED_HOSTS
+        value: trinetra.onrender.com,www.trinetra.onrender.com
+      - key: CSRF_TRUSTED_ORIGINS
+        value: https://trinetra.onrender.com,https://www.trinetra.onrender.com
+      - key: SECURE_SSL_REDIRECT
+        value: "true"
+      - key: DATABASE_URL
+        sync: false
+
+databases:
+  - name: trinetra-postgres
+    plan: free
+    ipAllowList: []
