@@ -1,0 +1,490 @@
+/* ═══════════════════════════════════════════════════════════════
+   TRINETRA-FX  —  Futuristic layered UI system
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ── Fonts ──────────────────────────────────────────────────── */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600&family=Orbitron:wght@500;700;900&display=swap');
+
+:root {
+  --tri-bg:       #07060a;
+  --tri-card:     rgba(20,17,15,0.72);
+  --tri-accent:   #f59e0b;
+  --tri-lotus:    #c084fc;
+  --tri-cyan:     #22d3ee;
+  --tri-glow-a:   rgba(245,158,11,0.35);
+  --tri-glow-l:   rgba(192,132,252,0.30);
+  --tri-glow-c:   rgba(34,211,238,0.30);
+  --tri-glass:    rgba(12,10,9,0.55);
+  --tri-border:   rgba(245,158,11,0.18);
+}
+
+/* ── Ambient background layers ─────────────────────────────── */
+#tri-bg-grid {
+  position: fixed; inset: 0; z-index: 0; pointer-events: none;
+  background-image:
+    linear-gradient(rgba(245,158,11,0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(245,158,11,0.04) 1px, transparent 1px);
+  background-size: 48px 48px;
+}
+#tri-bg-radial {
+  position: fixed; inset: 0; z-index: 0; pointer-events: none;
+  background: radial-gradient(ellipse 70% 50% at 50% 0%, rgba(245,158,11,0.06) 0%, transparent 70%),
+              radial-gradient(ellipse 50% 60% at 80% 80%, rgba(192,132,252,0.04) 0%, transparent 60%);
+}
+#tri-scanlines {
+  position: fixed; inset: 0; z-index: 0; pointer-events: none; opacity: 0.03;
+  background: repeating-linear-gradient(
+    0deg, transparent, transparent 2px, rgba(255,255,255,0.07) 2px, rgba(255,255,255,0.07) 4px);
+}
+
+/* Floating orbs */
+.tri-orb {
+  position: fixed; border-radius: 50%; pointer-events: none; z-index: 0;
+  filter: blur(80px); opacity: 0.18;
+  animation: tri-float 18s ease-in-out infinite alternate;
+}
+.tri-orb--amber  { width: 380px; height: 380px; background: var(--tri-accent); top: -8%; left: 12%; }
+.tri-orb--purple { width: 310px; height: 310px; background: var(--tri-lotus);  bottom: -5%; right: 8%; animation-delay: -7s; }
+.tri-orb--cyan   { width: 250px; height: 250px; background: var(--tri-cyan);   top: 50%; left: -5%; animation-delay: -12s; }
+
+@keyframes tri-float {
+  0%   { transform: translateY(0) scale(1); }
+  100% { transform: translateY(-40px) scale(1.08); }
+}
+
+/* Canvas cursor layer */
+#tri-cursor-canvas {
+  position: fixed; inset: 0; z-index: 9998; pointer-events: none;
+}
+
+/* ── Z-index stacking ──────────────────────────────────────── */
+/* 0   – bg layers        */
+/* 1   – main content     */
+/* 10  – cards            */
+/* 50  – header           */
+/* 9998 – cursor canvas   */
+/* 9999 – (reserved)      */
+
+body {
+  font-family: 'Inter', ui-sans-serif, system-ui, sans-serif;
+  background: var(--tri-bg);
+  position: relative;
+}
+main { position: relative; z-index: 1; }
+
+/* ── Glass morphism cards ──────────────────────────────────── */
+.tri-glass {
+  background: var(--tri-glass);
+  backdrop-filter: blur(18px) saturate(1.3);
+  -webkit-backdrop-filter: blur(18px) saturate(1.3);
+  border: 1px solid var(--tri-border);
+  border-radius: 1.1rem;
+  box-shadow:
+    0 0 0 1px rgba(255,255,255,0.03) inset,
+    0 8px 32px rgba(0,0,0,0.45),
+    0 0 60px -15px var(--tri-glow-a);
+  transition: transform 0.35s cubic-bezier(.4,0,.2,1), box-shadow 0.35s ease;
+  position: relative; z-index: 10;
+}
+.tri-glass:hover {
+  transform: translateY(-3px);
+  box-shadow:
+    0 0 0 1px rgba(255,255,255,0.05) inset,
+    0 12px 40px rgba(0,0,0,0.5),
+    0 0 80px -10px var(--tri-glow-a);
+}
+.tri-glass--purple { border-color: rgba(192,132,252,0.18); box-shadow: 0 8px 32px rgba(0,0,0,0.45), 0 0 60px -15px var(--tri-glow-l); }
+.tri-glass--purple:hover { box-shadow: 0 12px 40px rgba(0,0,0,0.5), 0 0 80px -10px var(--tri-glow-l); }
+.tri-glass--cyan   { border-color: rgba(34,211,238,0.18); box-shadow: 0 8px 32px rgba(0,0,0,0.45), 0 0 60px -15px var(--tri-glow-c); }
+.tri-glass--cyan:hover   { box-shadow: 0 12px 40px rgba(0,0,0,0.5), 0 0 80px -10px var(--tri-glow-c); }
+
+/* ── Animated glow-line (header bottom) ─────────────────────  */
+.tri-header-glow::after {
+  content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 2px;
+  background: linear-gradient(90deg, transparent 0%, var(--tri-accent) 20%, var(--tri-lotus) 50%, var(--tri-cyan) 80%, transparent 100%);
+  animation: tri-glow-sweep 5s ease-in-out infinite;
+}
+@keyframes tri-glow-sweep {
+  0%, 100% { opacity: 0.5; filter: blur(1px); }
+  50%      { opacity: 1;   filter: blur(0px); }
+}
+
+/* ── Neon heading text ─────────────────────────────────────── */
+.tri-neon-amber {
+  color: #fbbf24;
+  text-shadow: 0 0 8px rgba(251,191,36,0.5), 0 0 20px rgba(251,191,36,0.2);
+}
+.tri-neon-purple {
+  color: #c084fc;
+  text-shadow: 0 0 8px rgba(192,132,252,0.5), 0 0 20px rgba(192,132,252,0.2);
+}
+.tri-neon-cyan {
+  color: #22d3ee;
+  text-shadow: 0 0 8px rgba(34,211,238,0.5), 0 0 20px rgba(34,211,238,0.2);
+}
+
+/* ── Icon header row ───────────────────────────────────────── */
+.tri-section-header {
+  display: flex; align-items: center; gap: 0.65rem;
+  font-family: 'Orbitron', sans-serif; font-weight: 700;
+  letter-spacing: 0.04em; text-transform: uppercase;
+}
+.tri-section-header svg {
+  width: 1.35em; height: 1.35em; flex-shrink: 0;
+  filter: drop-shadow(0 0 6px currentColor);
+}
+
+/* ── Status badges ─────────────────────────────────────────── */
+.tri-badge {
+  display: inline-flex; align-items: center; gap: 0.35rem;
+  padding: 0.2rem 0.7rem; border-radius: 9999px;
+  font-size: 0.75rem; font-weight: 600; letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+.tri-badge--open {
+  background: rgba(52,211,153,0.12); color: #6ee7b7; border: 1px solid rgba(52,211,153,0.25);
+  box-shadow: 0 0 12px rgba(52,211,153,0.15);
+}
+.tri-badge--closed {
+  background: rgba(251,113,133,0.12); color: #fda4af; border: 1px solid rgba(251,113,133,0.25);
+  box-shadow: 0 0 12px rgba(251,113,133,0.15);
+}
+.tri-badge--open::before, .tri-badge--closed::before {
+  content: ''; width: 6px; height: 6px; border-radius: 50%;
+  animation: tri-pulse-dot 1.8s ease-in-out infinite;
+}
+.tri-badge--open::before   { background: #34d399; box-shadow: 0 0 6px #34d399; }
+.tri-badge--closed::before { background: #fb7185; box-shadow: 0 0 6px #fb7185; }
+@keyframes tri-pulse-dot {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%      { opacity: 0.4; transform: scale(0.7); }
+}
+
+/* ── Table futurism ────────────────────────────────────────── */
+.tri-table {
+  width: 100%; border-collapse: separate; border-spacing: 0;
+  font-size: 0.875rem;
+}
+.tri-table thead {
+  position: sticky; top: 0; z-index: 2;
+  background: linear-gradient(180deg, rgba(28,25,23,0.95) 0%, rgba(28,25,23,0.85) 100%);
+  backdrop-filter: blur(8px);
+}
+.tri-table thead th {
+  padding: 0.85rem 1rem; text-align: left;
+  font-family: 'Orbitron', sans-serif; font-size: 0.7rem; font-weight: 600;
+  letter-spacing: 0.1em; text-transform: uppercase;
+  color: rgba(245,158,11,0.7); border-bottom: 1px solid rgba(245,158,11,0.15);
+}
+.tri-table tbody tr {
+  transition: background 0.25s ease, box-shadow 0.25s ease;
+}
+.tri-table tbody tr:hover {
+  background: rgba(245,158,11,0.04);
+  box-shadow: inset 3px 0 0 var(--tri-accent);
+}
+.tri-table td {
+  padding: 0.7rem 1rem; border-bottom: 1px solid rgba(255,255,255,0.04);
+  color: #d6d3d1;
+}
+
+/* ── Inputs ────────────────────────────────────────────────── */
+.tri-input {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border-radius: 0.6rem;
+  border: 1px solid rgba(245,158,11,0.25);
+  background: rgba(12,10,9,0.7);
+  color: #e7e5e4;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.875rem;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+  outline: none;
+}
+.tri-input::placeholder { color: rgba(168,162,158,0.5); }
+.tri-input:focus {
+  border-color: var(--tri-accent);
+  box-shadow: 0 0 0 3px rgba(245,158,11,0.12), 0 0 20px rgba(245,158,11,0.08);
+}
+
+/* ── Buttons ───────────────────────────────────────────────── */
+.tri-btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.6rem; border: none; cursor: pointer;
+  font-family: 'Orbitron', sans-serif; font-weight: 700; font-size: 0.8rem;
+  letter-spacing: 0.06em; text-transform: uppercase;
+  transition: transform 0.25s ease, box-shadow 0.25s ease, background 0.25s ease;
+}
+.tri-btn:hover { transform: translateY(-2px); }
+.tri-btn--primary {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  color: #0c0a09;
+  box-shadow: 0 4px 20px rgba(245,158,11,0.3);
+}
+.tri-btn--primary:hover {
+  box-shadow: 0 6px 30px rgba(245,158,11,0.45);
+}
+.tri-btn--danger {
+  background: linear-gradient(135deg, #f43f5e 0%, #e11d48 100%);
+  color: #fff;
+  box-shadow: 0 4px 20px rgba(244,63,94,0.25);
+}
+.tri-btn--danger:hover {
+  box-shadow: 0 6px 30px rgba(244,63,94,0.4);
+}
+
+/* ── Shloka block ──────────────────────────────────────────── */
+.tri-shloka {
+  font-family: 'Inter', sans-serif;
+  font-style: italic; text-align: center;
+  padding: 1.5rem 2rem;
+  border-radius: 0.8rem;
+  border: 1px solid rgba(192,132,252,0.15);
+  background: linear-gradient(135deg, rgba(192,132,252,0.05), rgba(245,158,11,0.03));
+  position: relative; overflow: hidden;
+}
+.tri-shloka::before {
+  content: 'ॐ'; position: absolute; top: -0.3rem; right: 1.2rem;
+  font-size: 3.5rem; font-style: normal; opacity: 0.04; color: var(--tri-lotus);
+  pointer-events: none;
+}
+.tri-shloka .shloka-sanskrit {
+  font-size: 1.05rem; line-height: 1.8; color: #e9d5ff;
+  text-shadow: 0 0 10px rgba(192,132,252,0.15);
+}
+.tri-shloka .shloka-translation {
+  font-size: 0.8rem; color: #a8a29e; margin-top: 0.6rem;
+  font-style: normal;
+}
+
+/* ── Breathe animation (logo) ──────────────────────────────── */
+.tri-breathe {
+  animation: tri-breathe 4s ease-in-out infinite;
+}
+@keyframes tri-breathe {
+  0%, 100% { filter: drop-shadow(0 0 12px rgba(245,158,11,0.3)); }
+  50%      { filter: drop-shadow(0 0 24px rgba(245,158,11,0.55)); }
+}
+
+/* ── Stat cards ────────────────────────────────────────────── */
+.tri-stat {
+  display: flex; flex-direction: column; align-items: center; gap: 0.4rem;
+  min-height: 7.2rem;
+  justify-content: center;
+  padding: 1.25rem 1.5rem; border-radius: 1rem;
+  background: rgba(255,255,255,0.025);
+  border: 1px solid rgba(255,255,255,0.08);
+  transition: border-color 0.3s ease, background 0.3s ease, box-shadow 0.3s ease;
+  /* Overflow protection — prevents long text from escaping the card */
+  min-width: 0;
+  max-width: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+.tri-stat:hover {
+  border-color: var(--tri-border);
+  background: rgba(245,158,11,0.04);
+}
+.tri-stat .stat-value {
+  font-family: 'Orbitron', sans-serif; font-size: clamp(1.9rem, 3.6vw, 2.2rem); font-weight: 700;
+  line-height: 1.05;
+  text-align: center;
+  /* Keep long domains / IPv6 inside the card */
+  max-width: 100%;
+  overflow-wrap: break-word;
+  word-break: break-word;
+}
+/* Smaller font for text-heavy stat values (target, IP) */
+.tri-stat .stat-value--text {
+  font-size: clamp(0.85rem, 2.2vw, 1.1rem);
+  line-height: 1.35;
+}
+.tri-stat .stat-label {
+  font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.08em;
+  color: #a8a29e;
+}
+
+.tri-results-card {
+  padding: 1.8rem;
+}
+
+.tri-results-content {
+  display: grid;
+  gap: 1.6rem;
+}
+
+.tri-results-grid {
+  gap: 1.25rem;
+}
+/* Grid children must allow shrinking below content size */
+.tri-results-grid > * {
+  min-width: 0;
+}
+
+/* Combined meta + export toolbar row */
+.tri-results-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.7rem 1rem;
+  border-radius: 0.75rem;
+  background: rgba(255,255,255,0.02);
+  border: 1px solid rgba(255,255,255,0.05);
+}
+.tri-results-toolbar .tri-results-meta {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.tri-results-table-wrap {
+  border-radius: 0.95rem;
+}
+
+/* ── Custom scrollbar ──────────────────────────────────────── */
+::-webkit-scrollbar            { width: 6px; height: 6px; }
+::-webkit-scrollbar-track      { background: transparent; }
+::-webkit-scrollbar-thumb      { background: rgba(245,158,11,0.2); border-radius: 99px; }
+::-webkit-scrollbar-thumb:hover{ background: rgba(245,158,11,0.35); }
+
+/* ── Misc utilities ────────────────────────────────────────── */
+.tri-mono { font-family: 'JetBrains Mono', monospace; }
+.tri-orbitron { font-family: 'Orbitron', sans-serif; }
+.tri-fade-in { animation: tri-fade-in 0.6s ease forwards; }
+@keyframes tri-fade-in {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* chip/nav pills glow on hover */
+.tri-pill {
+  position: relative;
+  transition: all 0.3s ease;
+}
+.tri-pill::after {
+  content: ''; position: absolute; inset: -2px; border-radius: inherit;
+  opacity: 0; transition: opacity 0.3s ease;
+  background: currentColor; filter: blur(12px); z-index: -1;
+}
+.tri-pill:hover::after { opacity: 0.15; }
+
+/* ── Scan buffering overlay ────────────────────────────────── */
+body.tri-overlay-lock {
+  overflow: hidden;
+}
+
+.tri-scan-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: grid;
+  place-items: center;
+  background: radial-gradient(circle at 50% 35%, rgba(34, 211, 238, 0.12) 0%, rgba(7, 6, 10, 0.92) 65%);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 0.28s ease, visibility 0.28s ease;
+}
+
+.tri-scan-overlay.is-active {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: all;
+}
+
+.tri-scan-overlay__panel {
+  width: min(420px, calc(100vw - 2rem));
+  padding: 1.8rem 1.6rem;
+  text-align: center;
+  border-radius: 1rem;
+  border: 1px solid rgba(245, 158, 11, 0.34);
+  background: linear-gradient(145deg, rgba(17, 17, 20, 0.95), rgba(24, 19, 16, 0.95));
+  box-shadow: 0 16px 64px rgba(0, 0, 0, 0.55), 0 0 42px rgba(245, 158, 11, 0.18);
+}
+
+.tri-spinner {
+  width: 58px;
+  height: 58px;
+  margin: 0 auto 1rem;
+  border-radius: 50%;
+  border: 3px solid rgba(245, 158, 11, 0.2);
+  border-top-color: #fbbf24;
+  border-right-color: #22d3ee;
+  box-shadow: 0 0 22px rgba(251, 191, 36, 0.25);
+  animation: tri-spin 0.95s linear infinite;
+}
+
+.tri-scan-overlay__title {
+  font-family: 'Orbitron', sans-serif;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #fef3c7;
+  font-size: 0.95rem;
+  margin: 0;
+}
+
+.tri-scan-overlay__subtitle {
+  margin: 0.45rem 0 1rem;
+  color: #d6d3d1;
+  font-size: 0.82rem;
+}
+
+.tri-scan-overlay__bar {
+  height: 7px;
+  border-radius: 999px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.tri-scan-overlay__bar-fill {
+  width: 45%;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #f59e0b, #c084fc, #22d3ee);
+  animation: tri-progress-move 1.35s ease-in-out infinite;
+}
+
+.tri-results-content {
+  transition: opacity 0.28s ease, transform 0.28s ease;
+}
+
+@media (min-width: 768px) {
+  .tri-results-card {
+    padding: 2.1rem;
+  }
+
+  .tri-results-grid {
+    gap: 1.05rem;
+  }
+}
+
+.tri-results-fade-out {
+  opacity: 0.5;
+  transform: translateY(6px);
+}
+
+.tri-results-fade-in {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+@keyframes tri-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes tri-progress-move {
+  0% {
+    transform: translateX(-55%);
+  }
+  50% {
+    transform: translateX(55%);
+  }
+  100% {
+    transform: translateX(160%);
+  }
+}

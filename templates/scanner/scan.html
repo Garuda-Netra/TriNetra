@@ -1,0 +1,371 @@
+{% extends 'base.html' %}
+
+{% block title %}Trinetra • Scan{% endblock %}
+
+{% block content %}
+
+<!-- ═══ Hero Dashboard Banner ═══ -->
+<section class="tri-glass tri-fade-in mb-10 p-7 md:p-8">
+    <div class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+        <div>
+            <h2 class="tri-section-header tri-neon-amber text-xl">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+                Trinetra Dashboard
+            </h2>
+            <p class="mt-2 text-sm text-stone-400">Launch a scan or review live results below.</p>
+        </div>
+        <div class="flex flex-wrap gap-2">
+            <span class="tri-badge" style="background:rgba(245,158,11,0.1);color:#fbbf24;border:1px solid rgba(245,158,11,0.25);">⚡ Run Port Scan</span>
+            <span class="tri-badge" style="background:rgba(192,132,252,0.1);color:#d8b4fe;border:1px solid rgba(192,132,252,0.25);">◈ Latest Results</span>
+        </div>
+    </div>
+</section>
+
+<!-- ═══ Main 2-column layout ═══ -->
+<div class="grid gap-8 lg:grid-cols-5">
+
+    <!-- ── Scan Form Card ── -->
+    <section class="tri-glass tri-fade-in p-7 md:p-8 lg:col-span-2" style="animation-delay:0.1s">
+        <h2 class="tri-section-header tri-neon-amber mb-5 text-lg">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+            Run Port Scan
+        </h2>
+
+        <form id="scan-form" method="post" class="space-y-5" novalidate>
+            {% csrf_token %}
+            <div>
+                <label class="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-amber-200/70">Target IP / Domain</label>
+                {{ form.target }}
+            </div>
+            <div>
+                <label class="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-amber-200/70">Port Range / List</label>
+                {{ form.ports }}
+                <p class="mt-1.5 text-xs text-stone-500 tri-mono">{{ form.ports.help_text }}</p>
+            </div>
+            <div>
+                <label class="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-amber-200/70">Timeout (seconds)</label>
+                {{ form.timeout }}
+            </div>
+            <button id="scan-submit" type="submit" class="tri-btn tri-btn--primary w-full">
+                <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                Initiate Scan
+            </button>
+        </form>
+
+        <div id="scan-error" class="mt-5 {% if not error %}hidden{% endif %} rounded-lg border border-red-400/30 bg-red-900/20 p-3 text-sm text-red-200">
+            <strong class="text-red-300">⚠ Error:</strong> <span id="scan-error-text">{{ error }}</span>
+        </div>
+    </section>
+
+    <!-- ── Results Card ── -->
+    <section class="tri-glass tri-glass--purple tri-fade-in tri-results-card p-7 md:p-8 lg:col-span-3" style="animation-delay:0.2s">
+        <h2 class="tri-section-header tri-neon-purple mb-5 text-lg">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>
+            Latest Scan Results
+        </h2>
+
+        <div id="scan-results-content" class="tri-results-content">
+        {% if results %}
+            <!-- Stat cards grid -->
+            <div class="tri-results-grid grid grid-cols-2 gap-4 sm:grid-cols-4 sm:gap-5">
+                <div class="tri-stat">
+                    <span class="stat-value stat-value--text text-amber-300 break-all">{{ target }}</span>
+                    <span class="stat-label">Target</span>
+                </div>
+                <div class="tri-stat">
+                    <span class="stat-value stat-value--text text-cyan-300 tri-mono break-all">{{ resolved_ip }}</span>
+                    <span class="stat-label">Resolved IP</span>
+                </div>
+                <div class="tri-stat">
+                    <span class="stat-value text-emerald-400">{{ open_count }}</span>
+                    <span class="stat-label">Open</span>
+                </div>
+                <div class="tri-stat">
+                    <span class="stat-value text-rose-400">{{ closed_count }}</span>
+                    <span class="stat-label">Closed</span>
+                </div>
+            </div>
+            <!-- Meta + Export toolbar -->
+            <div class="tri-results-toolbar">
+                <p class="tri-results-meta text-xs text-stone-500 m-0"><span class="text-cyan-400 font-semibold">{{ saved_rows }}</span> rows saved to database</p>
+                <div class="flex flex-wrap items-center gap-2 ml-auto">
+                    <a href="{% url 'scanner:export' %}?scope=latest&format=csv" class="tri-pill rounded-lg border border-cyan-300/30 bg-cyan-400/8 px-4 py-2 text-xs font-semibold text-cyan-200 transition hover:bg-cyan-400/15">
+                        ↓ Export CSV
+                    </a>
+                    <a href="{% url 'scanner:export' %}?scope=latest&format=json" class="tri-pill rounded-lg border border-emerald-300/30 bg-emerald-400/8 px-4 py-2 text-xs font-semibold text-emerald-200 transition hover:bg-emerald-400/15">
+                        ↓ Export JSON
+                    </a>
+                </div>
+            </div>
+
+            <!-- Results table -->
+            <div class="tri-results-table-wrap max-h-[460px] overflow-auto rounded-xl border border-stone-700/50">
+                <table class="tri-table">
+                    <thead>
+                        <tr>
+                            <th>Port</th>
+                            <th>Service</th>
+                            <th>Status</th>
+                            <th>Timestamp (UTC)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for row in results %}
+                            <tr>
+                                <td class="tri-mono font-semibold text-stone-200">{{ row.port }}</td>
+                                <td class="text-cyan-300">{{ row.service }}</td>
+                                <td>
+                                    <span class="tri-badge {% if row.status == 'OPEN' %}tri-badge--open{% else %}tri-badge--closed{% endif %}">
+                                        {{ row.status }}
+                                    </span>
+                                </td>
+                                <td class="text-stone-500 text-xs tri-mono">{{ row.timestamp }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="flex flex-col items-center justify-center py-16 text-stone-500">
+                <svg class="mb-3 h-10 w-10 opacity-30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                <p class="text-sm">No scan executed yet in this session.</p>
+                <p class="text-xs mt-1 text-stone-600">Enter a target and click <strong class="text-amber-400">Initiate Scan</strong> to begin.</p>
+            </div>
+        {% endif %}
+        </div>
+    </section>
+</div>
+
+<div id="scan-overlay" class="tri-scan-overlay" aria-live="polite" aria-hidden="true">
+    <div class="tri-scan-overlay__panel" role="status" aria-label="Scan in progress">
+        <div class="tri-spinner" aria-hidden="true"></div>
+        <p class="tri-scan-overlay__title">Scanning...</p>
+        <p class="tri-scan-overlay__subtitle">Please wait while Trinetra checks the target ports.</p>
+        <div class="tri-scan-overlay__bar" aria-hidden="true">
+            <div class="tri-scan-overlay__bar-fill"></div>
+        </div>
+    </div>
+</div>
+
+<!-- ═══ About Section ═══ -->
+<footer id="about-trinetra" class="tri-glass tri-glass--cyan tri-fade-in mt-12 p-7 md:p-8" style="animation-delay:0.3s">
+    <h2 class="tri-section-header tri-neon-cyan mb-5 text-xl">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+        About Trinetra
+    </h2>
+    <p class="text-sm text-stone-400 leading-relaxed max-w-3xl">
+        <strong class="text-stone-200">Trinetra</strong> (त्रिनेत्र — the third eye) is a lightweight cybersecurity learning tool
+        offering both <span class="text-amber-300">CLI</span> and <span class="text-purple-300">GUI</span> workflows for port scanning, with results stored in a shared SQLite database.
+    </p>
+
+    <!-- Shloka -->
+    <div class="tri-shloka mt-6">
+        <p class="shloka-sanskrit">
+            ॐ त्र्यम्बकं यजामहे सुगन्धिं पुष्टिवर्धनम् ।<br/>
+            उर्वारुकमिव बन्धनान्मृत्योर्मुक्षीय मामृतात् ॥
+        </p>
+        <p class="shloka-translation">
+            "We worship the three-eyed One (Lord Shiva) who nourishes all.
+            May He liberate us from the bondage of mortality."
+            — Maha Mrityunjaya Mantra, Rig Veda (7.59.12)
+        </p>
+    </div>
+
+    <!-- Info cards -->
+    <div class="mt-6 grid gap-4 md:grid-cols-3">
+        <article class="rounded-xl border border-cyan-300/15 bg-stone-950/40 p-4 transition hover:border-cyan-300/30">
+            <h3 class="tri-orbitron text-xs font-bold uppercase tracking-widest text-cyan-300 mb-2">CLI Mode</h3>
+            <ul class="space-y-1 text-sm text-stone-300">
+                <li>• Run command with target + port range</li>
+                <li>• ASCII banner, progress bar, colored output</li>
+                <li>• Results are saved to SQLite</li>
+            </ul>
+        </article>
+        <article class="rounded-xl border border-purple-300/15 bg-stone-950/40 p-4 transition hover:border-purple-300/30">
+            <h3 class="tri-orbitron text-xs font-bold uppercase tracking-widest text-purple-300 mb-2">GUI Mode</h3>
+            <ul class="space-y-1 text-sm text-stone-300">
+                <li>• Enter target + ports and click Scan</li>
+                <li>• View service mapping and status table</li>
+                <li>• Use history filters and CSV/JSON export</li>
+            </ul>
+        </article>
+        <article class="rounded-xl border border-emerald-300/15 bg-stone-950/40 p-4 transition hover:border-emerald-300/30">
+            <h3 class="tri-orbitron text-xs font-bold uppercase tracking-widest text-emerald-300 mb-2">Storage</h3>
+            <ul class="space-y-1 text-sm text-stone-300">
+                <li>• SQLite table: <span class="font-semibold text-emerald-200 tri-mono">scans</span></li>
+                <li>• Fields: target, port, status, timestamp</li>
+                <li>• Shared backend for CLI + GUI</li>
+            </ul>
+        </article>
+    </div>
+
+    <!-- CLI commands -->
+    <div class="mt-5 rounded-xl border border-stone-700/40 bg-stone-950/50 p-4">
+        <h3 class="tri-orbitron text-xs font-bold uppercase tracking-widest text-amber-300 mb-2">CLI Quick Commands</h3>
+        <pre class="overflow-auto rounded-lg border border-stone-700/30 bg-stone-900/50 p-3 text-xs text-stone-300 tri-mono leading-relaxed"><code>python main.py 127.0.0.1 20-30 --timeout 0.3
+python main.py localhost 22,80,443 --timeout 0.5
+python main.py 127.0.0.1 1-100 --db data/my_scans.db</code></pre>
+    </div>
+</footer>
+
+<script>
+    (() => {
+        const form = document.getElementById('scan-form');
+        const overlay = document.getElementById('scan-overlay');
+        const resultsContainer = document.getElementById('scan-results-content');
+        const errorBox = document.getElementById('scan-error');
+        const errorText = document.getElementById('scan-error-text');
+        const submitButton = document.getElementById('scan-submit');
+
+        if (!form || !overlay || !resultsContainer || !errorBox || !errorText || !submitButton) {
+            return;
+        }
+
+        const escapeHtml = (value) => String(value)
+            .replaceAll('&', '&amp;')
+            .replaceAll('<', '&lt;')
+            .replaceAll('>', '&gt;')
+            .replaceAll('"', '&quot;')
+            .replaceAll("'", '&#39;');
+
+        const renderEmptyState = () => {
+            resultsContainer.innerHTML = `
+                <div class="flex flex-col items-center justify-center py-16 text-stone-500">
+                    <svg class="mb-3 h-10 w-10 opacity-30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                    <p class="text-sm">No scan results returned.</p>
+                    <p class="text-xs mt-1 text-stone-600">Try a different target or port range and run scan again.</p>
+                </div>
+            `;
+        };
+
+        const renderResults = (payload) => {
+            const results = Array.isArray(payload.results) ? payload.results : [];
+
+            if (!results.length) {
+                renderEmptyState();
+                return;
+            }
+
+            const rowsHtml = results.map((row) => {
+                const isOpen = row.status === 'OPEN';
+                return `
+                    <tr>
+                        <td class="tri-mono font-semibold text-stone-200">${escapeHtml(row.port)}</td>
+                        <td class="text-cyan-300">${escapeHtml(row.service)}</td>
+                        <td>
+                            <span class="tri-badge ${isOpen ? 'tri-badge--open' : 'tri-badge--closed'}">${escapeHtml(row.status)}</span>
+                        </td>
+                        <td class="text-stone-500 text-xs tri-mono">${escapeHtml(row.timestamp)}</td>
+                    </tr>
+                `;
+            }).join('');
+
+            const target = escapeHtml(payload.target ?? '');
+            const resolvedIp = escapeHtml(payload.resolved_ip ?? '');
+            const openCount = escapeHtml(payload.open_count ?? 0);
+            const closedCount = escapeHtml(payload.closed_count ?? 0);
+            const savedRows = escapeHtml(payload.saved_rows ?? 0);
+            const exportBase = '{% url "scanner:export" %}';
+
+            resultsContainer.innerHTML = `
+                <div class="tri-results-grid grid grid-cols-2 gap-4 sm:grid-cols-4 sm:gap-5">
+                    <div class="tri-stat">
+                        <span class="stat-value stat-value--text text-amber-300 break-all">${target}</span>
+                        <span class="stat-label">Target</span>
+                    </div>
+                    <div class="tri-stat">
+                        <span class="stat-value stat-value--text text-cyan-300 tri-mono break-all">${resolvedIp}</span>
+                        <span class="stat-label">Resolved IP</span>
+                    </div>
+                    <div class="tri-stat">
+                        <span class="stat-value text-emerald-400">${openCount}</span>
+                        <span class="stat-label">Open</span>
+                    </div>
+                    <div class="tri-stat">
+                        <span class="stat-value text-rose-400">${closedCount}</span>
+                        <span class="stat-label">Closed</span>
+                    </div>
+                </div>
+                <div class="tri-results-toolbar">
+                    <p class="tri-results-meta text-xs text-stone-500 m-0"><span class="text-cyan-400 font-semibold">${savedRows}</span> rows saved to database</p>
+                    <div class="flex flex-wrap items-center gap-2 ml-auto">
+                        <a href="${exportBase}?scope=latest&format=csv" class="tri-pill rounded-lg border border-cyan-300/30 bg-cyan-400/8 px-4 py-2 text-xs font-semibold text-cyan-200 transition hover:bg-cyan-400/15">
+                            ↓ Export CSV
+                        </a>
+                        <a href="${exportBase}?scope=latest&format=json" class="tri-pill rounded-lg border border-emerald-300/30 bg-emerald-400/8 px-4 py-2 text-xs font-semibold text-emerald-200 transition hover:bg-emerald-400/15">
+                            ↓ Export JSON
+                        </a>
+                    </div>
+                </div>
+
+                <div class="tri-results-table-wrap max-h-[460px] overflow-auto rounded-xl border border-stone-700/50">
+                    <table class="tri-table">
+                        <thead>
+                            <tr>
+                                <th>Port</th>
+                                <th>Service</th>
+                                <th>Status</th>
+                                <th>Timestamp (UTC)</th>
+                            </tr>
+                        </thead>
+                        <tbody>${rowsHtml}</tbody>
+                    </table>
+                </div>
+            `;
+        };
+
+        const showOverlay = () => {
+            overlay.classList.add('is-active');
+            overlay.setAttribute('aria-hidden', 'false');
+            document.body.classList.add('tri-overlay-lock');
+            submitButton.disabled = true;
+            resultsContainer.classList.add('tri-results-fade-out');
+        };
+
+        const hideOverlay = () => {
+            overlay.classList.remove('is-active');
+            overlay.setAttribute('aria-hidden', 'true');
+            document.body.classList.remove('tri-overlay-lock');
+            submitButton.disabled = false;
+        };
+
+        form.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            errorBox.classList.add('hidden');
+            errorText.textContent = '';
+            showOverlay();
+
+            try {
+                const response = await fetch(form.action || window.location.pathname, {
+                    method: 'POST',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Accept': 'application/json',
+                    },
+                    body: new FormData(form),
+                    credentials: 'same-origin',
+                });
+
+                const payload = await response.json();
+                if (!response.ok || !payload.ok) {
+                    throw new Error(payload.error || 'Scan failed. Please try again.');
+                }
+
+                renderResults(payload);
+            } catch (error) {
+                errorText.textContent = error.message || 'Unable to complete the scan.';
+                errorBox.classList.remove('hidden');
+            } finally {
+                hideOverlay();
+                requestAnimationFrame(() => {
+                    resultsContainer.classList.remove('tri-results-fade-out');
+                    resultsContainer.classList.add('tri-results-fade-in');
+                    window.setTimeout(() => {
+                        resultsContainer.classList.remove('tri-results-fade-in');
+                    }, 320);
+                });
+            }
+        });
+    })();
+</script>
+{% endblock %}

@@ -1,0 +1,232 @@
+{% extends 'base.html' %}
+
+{% block title %}Trinetra • History{% endblock %}
+
+{% block content %}
+<section class="tri-glass tri-glass--purple tri-fade-in p-7 md:p-8">
+
+    <!-- ── Header ── -->
+    <h2 class="tri-section-header tri-neon-purple mb-5 text-xl">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        Scan History
+    </h2>
+
+    <!-- ── Filter form ── -->
+    <form method="get" id="history-filter-form" class="grid gap-4 md:grid-cols-4 md:items-end">
+        <div>
+            <label class="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-purple-200/70">Target filter</label>
+            {{ form.target }}
+        </div>
+        <div>
+            <label class="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-purple-200/70">Start date</label>
+            {{ form.start_date }}
+        </div>
+        <div>
+            <label class="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-purple-200/70">End date</label>
+            {{ form.end_date }}
+        </div>
+        <button type="submit" class="tri-btn tri-btn--primary">
+            <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+            Apply Filters
+        </button>
+    </form>
+
+    <!-- ── Action buttons ── -->
+    <div class="mt-5 flex flex-wrap gap-3">
+        <a href="{% url 'scanner:export' %}?scope=history&format=csv&target={{ request.GET.target|default:'' }}&start_date={{ request.GET.start_date|default:'' }}&end_date={{ request.GET.end_date|default:'' }}"
+           class="tri-pill rounded-lg border border-cyan-300/30 bg-cyan-400/8 px-4 py-2 text-xs font-semibold text-cyan-200 transition hover:bg-cyan-400/15">
+            ↓ Export Filtered CSV
+        </a>
+        <a href="{% url 'scanner:export' %}?scope=history&format=json&target={{ request.GET.target|default:'' }}&start_date={{ request.GET.start_date|default:'' }}&end_date={{ request.GET.end_date|default:'' }}"
+           class="tri-pill rounded-lg border border-emerald-300/30 bg-emerald-400/8 px-4 py-2 text-xs font-semibold text-emerald-200 transition hover:bg-emerald-400/15">
+            ↓ Export Filtered JSON
+        </a>
+        <button
+            type="button"
+            id="delete-all-history-btn"
+            data-url="{% url 'scanner:delete_all_scans' %}"
+            class="tri-btn tri-btn--danger text-xs !py-2 !px-4"
+        >
+            <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
+            Delete Entire History
+        </button>
+    </div>
+
+    <!-- ── History table ── -->
+    <div class="mt-6 overflow-auto rounded-xl border border-stone-700/50">
+        <table class="tri-table">
+            <thead>
+                <tr>
+                    <th>Target</th>
+                    <th>Port</th>
+                    <th>Service</th>
+                    <th>Status</th>
+                    <th>Timestamp (UTC)</th>
+                    <th class="text-center">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in scans %}
+                    <tr id="scan-row-{{ item.id }}">
+                        <td class="text-stone-200 font-medium">{{ item.target }}</td>
+                        <td class="tri-mono font-semibold text-stone-200">{{ item.port }}</td>
+                        <td class="text-cyan-300">{{ item.service }}</td>
+                        <td>
+                            <span class="tri-badge {% if item.status == 'OPEN' %}tri-badge--open{% else %}tri-badge--closed{% endif %}">
+                                {{ item.status }}
+                            </span>
+                        </td>
+                        <td class="text-stone-500 text-xs tri-mono">{{ item.timestamp }}</td>
+                        <td class="text-center">
+                            <button
+                                type="button"
+                                class="delete-scan-btn rounded-lg border border-rose-400/25 bg-rose-500/10 px-3 py-1.5 text-xs font-semibold text-rose-300 transition hover:bg-rose-500/20 hover:shadow-[0_0_12px_rgba(244,63,94,0.15)]"
+                                data-id="{{ item.id }}"
+                                data-url="{% url 'scanner:delete_scan' item.id %}"
+                            >
+                                ✕ Delete
+                            </button>
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="6" class="px-4 py-10 text-center">
+                            <div class="flex flex-col items-center text-stone-500">
+                                <svg class="mb-2 h-8 w-8 opacity-30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                                <p class="text-sm">No matching scans found.</p>
+                            </div>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+
+<script>
+    (function () {
+        const form = document.getElementById('history-filter-form');
+        if (!form) return;
+
+        const getCsrfToken = () => {
+            const cookieValue = document.cookie
+                .split('; ')
+                .find((row) => row.startsWith('csrftoken='));
+            return cookieValue ? decodeURIComponent(cookieValue.split('=')[1]) : '';
+        };
+
+        const tableBody = document.querySelector('tbody');
+        const deleteAllButton = document.getElementById('delete-all-history-btn');
+
+        const renderEmptyState = () => {
+            if (!tableBody) return;
+            tableBody.innerHTML = `<tr><td colspan="6" class="px-4 py-10 text-center">
+                <div class="flex flex-col items-center text-stone-500">
+                    <svg class="mb-2 h-8 w-8 opacity-30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                    <p class="text-sm">No matching scans found.</p>
+                </div>
+            </td></tr>`;
+        };
+
+        const attachDeleteHandler = () => {
+            document.querySelectorAll('.delete-scan-btn').forEach((button) => {
+                button.addEventListener('click', async () => {
+                    const scanId = button.getAttribute('data-id');
+                    const deleteUrl = button.getAttribute('data-url');
+                    if (!scanId || !deleteUrl) return;
+
+                    const shouldDelete = window.confirm('Delete this scan record permanently?');
+                    if (!shouldDelete) return;
+
+                    button.disabled = true;
+                    button.textContent = '...';
+
+                    try {
+                        const response = await fetch(deleteUrl, {
+                            method: 'POST',
+                            headers: {
+                                'X-CSRFToken': getCsrfToken(),
+                                'X-Requested-With': 'XMLHttpRequest',
+                            },
+                        });
+
+                        const data = await response.json();
+                        if (!response.ok || !data.ok) {
+                            throw new Error(data.error || 'Delete failed');
+                        }
+
+                        const row = document.getElementById(`scan-row-${scanId}`);
+                        if (row) {
+                            row.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+                            row.style.opacity = '0';
+                            row.style.transform = 'translateX(20px)';
+                            setTimeout(() => {
+                                row.remove();
+                                const hasRows = tableBody && tableBody.querySelector('tr[id^="scan-row-"]');
+                                if (!hasRows) renderEmptyState();
+                            }, 300);
+                        }
+                    } catch (error) {
+                        window.alert(error.message || 'Could not delete scan row.');
+                        button.disabled = false;
+                        button.textContent = '✕ Delete';
+                    }
+                });
+            });
+        };
+
+        /* Debounced auto-filter */
+        const targetInput = document.getElementById('id_target_filter');
+        const startInput = document.getElementById('id_start_date_filter');
+        const endInput = document.getElementById('id_end_date_filter');
+
+        let timer = null;
+        const submitWithDebounce = () => {
+            window.clearTimeout(timer);
+            timer = window.setTimeout(() => form.submit(), 350);
+        };
+
+        if (targetInput) targetInput.addEventListener('input', submitWithDebounce);
+        if (startInput) startInput.addEventListener('change', submitWithDebounce);
+        if (endInput) endInput.addEventListener('change', submitWithDebounce);
+
+        attachDeleteHandler();
+
+        if (deleteAllButton) {
+            deleteAllButton.addEventListener('click', async () => {
+                const deleteUrl = deleteAllButton.getAttribute('data-url');
+                if (!deleteUrl) return;
+
+                const shouldDeleteAll = window.confirm('Delete entire scan history from database? This cannot be undone.');
+                if (!shouldDeleteAll) return;
+
+                deleteAllButton.disabled = true;
+                const origHTML = deleteAllButton.innerHTML;
+                deleteAllButton.textContent = 'Deleting...';
+
+                try {
+                    const response = await fetch(deleteUrl, {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRFToken': getCsrfToken(),
+                            'X-Requested-With': 'XMLHttpRequest',
+                        },
+                    });
+
+                    const data = await response.json();
+                    if (!response.ok || !data.ok) {
+                        throw new Error(data.error || 'Bulk delete failed');
+                    }
+
+                    renderEmptyState();
+                    deleteAllButton.textContent = '✓ History Deleted';
+                } catch (error) {
+                    window.alert(error.message || 'Could not delete entire history.');
+                    deleteAllButton.disabled = false;
+                    deleteAllButton.innerHTML = origHTML;
+                }
+            });
+        }
+    })();
+</script>
+{% endblock %}

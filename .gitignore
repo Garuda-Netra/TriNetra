@@ -1,0 +1,33 @@
+# Virtualenvs
+.venv/
+env/
+venv/
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+
+# Django
+db.sqlite3
+data/*.db
+staticfiles/
+media/
+
+# IDE / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+.venv/
+__pycache__/
+*.pyc
+data/
+staticfiles/
+*.pyo
+*.pyd
+*.pytest_cache/
+*.mypy_cache/
