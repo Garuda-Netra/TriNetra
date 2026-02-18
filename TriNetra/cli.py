@@ -52,6 +52,10 @@ def build_argument_parser() -> argparse.ArgumentParser:
               --timeout   Socket timeout in seconds (default 0.5)
               --db        Path to SQLite database file
               -h, --help  Show this help message
+
+            ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+            Created by Garuda Netra
+            ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
         """),
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )

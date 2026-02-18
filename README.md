@@ -1,27 +1,44 @@
-# Trinetra (Third Eye) - CLI + Django GUI Port Scanner
 
-Trinetra is a Python port scanner with:
 
-- CLI layer (argparse + rich output)
-- Django GUI layer (TailwindCSS-styled interface)
-- Shared scanning backend (`trinetra/scanner.py`)
-- Shared SQLite storage (`data/trinetra_scans.db`, table: `scans`)
+# Trinetra (त्रिनेत्र) — Third Eye Port Scanner
 
-## Features
+> **_"We worship the three-eyed One (Lord Shiva) who is fragrant and nourishes all."_**  
+> **_"May He liberate us from the bondage of death."_** — Rig Veda (7.59.12)
 
-### CLI
-- `argparse`-based input (`target`, `ports`, optional timeout/db path)
-- TCP port scanning using Python `socket`
-- ASCII banner + colored output + progress bar (`rich`)
-- Results saved to SQLite and summarized after scan
+**Created by [Garuda Netra](https://github.com/Garuda-Netra)**
 
-### GUI (Django + TailwindCSS)
-- Scan form: target, ports, timeout
-- Scan execution via existing scanner backend logic
-- Results table: port, service name, open/closed status, timestamp
-- History page with dynamic filters by target and date range
-- Export filtered history or latest scan as CSV/JSON
-- Sanskrit-inspired header/theme, Trinetra logo, and smooth cursor trail animation
+Trinetra is a full-stack port scanner with dual interfaces:
+
+- **CLI**: Fast, scriptable command-line scanning with Rich progress bars
+- **Django Web GUI**: Beautiful, interactive web dashboard with history & export
+- **Shared Backend**: Single scanning engine for both interfaces
+- **Production-Ready**: Configured for Render, Heroku, PythonAnywhere, and custom hosting
+
+## ✨ Features
+
+### CLI (`python main.py`)
+- **Fast TCP scanning** with socket-level performance
+- **Rich terminal UI**: Colored output, progress bars, ASCII art banner
+- **Service detection**: Identifies common services (SSH, HTTP, MySQL, etc.)
+- **Persistent storage**: Results auto-saved to SQLite database
+- **Flexible input**: Port ranges (`20-100`), comma-separated (`22,80,443`), or mixed
+- **Timeout control**: Adjustable socket timeout (default: 0.5s)
+- **SQL export**: All scans stored for historical analysis
+
+### Django Web GUI (`http://localhost:8000`)
+- **Interactive scan form**: Enter target and ports in-browser
+- **Live results table**: Real-time port status with service names
+- **Scan history**: View, filter, and export past scans
+- **Date/target filters**: Narrow down historical scans
+- **CSV/JSON export**: Download scan results in multiple formats
+- **Responsive design**: Works on desktop and mobile
+- **Dark theme**: Sanskrit-inspired aesthetic with Trinetra branding
+- **Animations**: Smooth cursor trail and glowing effects
+
+### Shared Backend
+- Unified scanning engine (`TriNetra/scanner.py`)
+- Common service name mapping (`scanner/services.py`)
+- Centralized database (`data/trinetra_scans.db`)
 
 ## Project Structure
 
@@ -65,175 +82,271 @@ TriNetra/
         └── __init__.py
 ```
 
-## Setup (Reproducible)
+## 🚀 Quick Start
 
+### Prerequisites
+- Python 3.11+ (recommended: 3.11.6 for Render compatibility)
+- pip or conda
+
+### Local Installation
+
+**1) Clone the repository**
 ```bash
-python -m venv .venv
-# Windows
-.venv\Scripts\activate
-# Linux/macOS
-source .venv/bin/activate
+git clone https://github.com/Garuda-Netra/TriNetra.git
+cd TriNetra
+```
 
+**2) Create virtual environment**
+```bash
+# Windows
+python -m venv .venv
+.venv\Scripts\activate
+
+# Linux/macOS
+python3 -m venv .venv
+source .venv/bin/activate
+```
+
+**3) Install dependencies**
+```bash
 pip install -r requirements.txt
 ```
 
-Optional env file setup:
-
+**4) (Optional) Configure environment**
 ```bash
-# Windows PowerShell
-Copy-Item .env.example .env
-# Linux/macOS
+# Create .env file (or copy from .env.example)
 cp .env.example .env
+# Edit .env with your settings
 ```
 
-## Run CLI
+## 📋 Environment Variables
 
+| Variable | Default | Purpose |
+|----------|---------|---------|
+| `DEBUG` | `True` | Django debug mode (set to `false` in production) |
+| `SECRET_KEY` | `django-insecure-...` | Django secret key (generate new for production) |
+| `ALLOWED_HOSTS` | `127.0.0.1,localhost` | Allowed domains for Django |
+| `CSRF_TRUSTED_ORIGINS` | `http://127.0.0.1:8000` | CSRF-safe origins |
+| `DATABASE_URL` | (empty) | PostgreSQL URL (auto-detects if set) |
+
+Generate a secure `SECRET_KEY`:
 ```bash
-python main.py <target> <ports> [--timeout 0.5] [--db data/trinetra_scans.db]
+python -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())"
 ```
 
-Examples:
+## 🖥️ Usage
 
+### CLI Scanner
+
+**Basic scan:**
 ```bash
 python main.py scanme.nmap.org 20-100
-python main.py 127.0.0.1 22,80,443 --timeout 1.0
 ```
 
-## Run Django GUI
+**Custom timeout and database:**
+```bash
+python main.py 127.0.0.1 22,80,443 --timeout 1.0 --db data/scans.db
+```
 
+**Help:**
+```bash
+python main.py --help
+```
+
+**Output example:**
+╔════════════════════════════════════════════════════==============+
+|                                                                  |
+| ████████╗██████╗ ██╗███╗   ██╗███████╗████████╗██████╗  █████╗   |
+| ╚══██╔══╝██╔══██╗██║████╗  ██║██╔════╝╚══██╔══╝██╔══██╗██╔══██╗  |
+|    ██║   ██████╔╝██║██╔██╗ ██║█████╗     ██║   ██████╔╝███████║  |
+|    ██║   ██╔══██╗██║██║╚██╗██║██╔══╝     ██║   ██╔══██╗██╔══██║  |
+|    ██║   ██║  ██║██║██║ ╚████║███████╗   ██║   ██║  ██║██║  ██║  |
+|    ╚═╝   ╚═╝  ╚═╝╚═╝╚═╝  ╚═══╝╚══════╝   ╚═╝   ╚═╝  ╚═╝╚═╝  ╚═╝  |
+|                                                                  |
+│  TRINETRA — Third Eye Port Scanner                               |
+╚════════════════════════════════════════════════════===============
+
+⚡ Scan Configuration
+─────────────────────────────
+Target : scanme.nmap.org
+IP     : 45.33.32.156
+Ports  : 100
+
+Port   Service      Version                      Status
+22     ssh          -                            OPEN
+80     http         -                            OPEN
+443    https        -                            OPEN
+```
+
+### Django Web Interface
+
+**Start development server:**
 ```bash
 python manage.py runserver
 ```
 
-Open:
+**Access:**
+- **Scan page**: http://127.0.0.1:8000/
+- **History page**: http://127.0.0.1:8000/history/
 
-- Scan page: `http://127.0.0.1:8000/`
-- History page: `http://127.0.0.1:8000/history/`
+**Workflow:**
+1. Enter target and ports on the Scan page
+2. Click **"⚡ Scan"**
+3. Wait for results (live progress shown)
+4. View results in the table
+5. **Export Latest CSV/JSON** (bottom of page)
+6. Go to **"◈ History"** to filter and export past scans
 
-## GUI Flow
+## 🗄️ Database
 
-1. Enter target and ports on scan page.
-2. Click **Scan**.
-3. The app reuses existing modules:
-   - scanning: `trinetra/scanner.py`
-   - DB writes: `trinetra/database.py`
-4. Results are stored in SQLite table `scans` and shown with mapped service names.
-5. Export latest result set from scan page (CSV/JSON).
-6. Use history filters (target/date range) to query past scans dynamically.
-7. Export filtered history results (CSV/JSON).
+### SQLite (Default - Local Development)
+- File: `data/trinetra_scans.db`
+- Table: `scans` (id, target, port, status, timestamp)
+- Perfect for CLI use and small deployments
+- **Limitation**: Ephemeral storage on PaaS (Heroku, Render) lose data on restart
 
-## Service Mapping
+### PostgreSQL (Production Recommended)
+- Set `DATABASE_URL` environment variable
+- Auto-detected by Django settings
+- Persistent data storage
+- Supports concurrent access better
+- Recommended for production deployments
 
-Common ports are mapped to service names in `scanner/services.py` (examples):
-
-- `22` → `SSH`
-- `80` → `HTTP`
-- `443` → `HTTPS`
-- `3306` → `MySQL`
-
-Unmapped ports are shown as `Unknown`.
-
-## Export Usage
-
-- On scan page, use **Export Latest CSV** or **Export Latest JSON**.
-- On history page, apply target/date-range filters and use:
-    - **Export Filtered CSV**
-    - **Export Filtered JSON**
-
-Downloads are generated from the same shared SQLite data source.
-
-## Database Schema (Shared)
-
-SQLite table: `scans`
-
-- `id` (INTEGER PRIMARY KEY AUTOINCREMENT)
-- `target` (TEXT)
-- `port` (INTEGER)
-- `status` (TEXT: OPEN/CLOSED)
-- `timestamp` (TEXT, ISO-8601 UTC)
-
-## Security Notes
-
-- Scan only systems you own or have explicit authorization to test.
-- Keep scan ranges reasonable to avoid unnecessary network impact.
-- Default timeout is conservative to prevent excessive hanging requests.
-
-## Deployment (Production-Oriented)
-
-### Production settings already prepared
-
-`trinetra_web/settings.py` supports environment-based production configuration:
-
-- `DEBUG`
-- `SECRET_KEY`
-- `ALLOWED_HOSTS`
-- `CSRF_TRUSTED_ORIGINS`
-- `DATABASE_URL` (optional PostgreSQL)
-- `SECURE_SSL_REDIRECT`
-
-Static asset handling is configured for deployment:
-
-- `STATICFILES_DIRS` for project static files
-- `STATIC_ROOT` for collected static artifacts
-- WhiteNoise middleware for static serving
-- Manifest static storage for cache-friendly filenames
-
-Collect static assets before deployment:
-
+**Switch to PostgreSQL:**
 ```bash
-python manage.py collectstatic --noinput
+# Install driver
+pip install psycopg[binary]
+
+# Set environment variable
+export DATABASE_URL=postgresql://user:password@host:5432/trinetra
+
+# No code changes needed!
 ```
 
-### Deploy on PythonAnywhere (simple path)
+## 🔒 Security
 
-1. Upload/clone project.
-2. Create and activate virtualenv.
-3. Install dependencies:
-    ```bash
-    pip install -r requirements.txt
-    ```
-4. Configure environment variables (`DEBUG=False`, `SECRET_KEY`, `ALLOWED_HOSTS`, `CSRF_TRUSTED_ORIGINS`).
-5. Point WSGI to `trinetra_web.wsgi`.
-6. Run:
-    ```bash
-    python manage.py collectstatic --noinput
-    ```
-7. Reload app from dashboard.
+- **Always scan only systems you own or have explicit written permission to test**
+- Unauthorized port scanning may violate laws in your jurisdiction
+- Use reasonable timeout values to avoid unnecessary network load
+- In production, set `DEBUG=False` and generate a strong `SECRET_KEY`
+- Enable HTTPS/SSL in production (`SECURE_SSL_REDIRECT=true`)
+- Use environment variables for sensitive data (never commit `.env`)
 
-### Deploy on Heroku / Heroku-like PaaS
+## 📄 License
 
-`Procfile` is included:
+This project is created by [Garuda Netra](https://github.com/Garuda-Netra). Check repository for license details.
 
-- `web: gunicorn trinetra_web.wsgi --log-file -`
+## 🙏 Attribution
 
-Set config vars:
+Built with:
+- **Django** — Web framework
+- **Rich** — Beautiful terminal output
+- **Tailwind CSS** — Responsive UI styling
+- **SQLite/PostgreSQL** — Data persistence
+- **Gunicorn** — Production WSGI server
 
-- `DEBUG=False`
-- `SECRET_KEY=<strong secret>`
-- `ALLOWED_HOSTS=<your-domain>`
-- `CSRF_TRUSTED_ORIGINS=https://<your-domain>`
+Inspired by the **Mahamrityunjaya Mantra** from the Rig Veda (7.59.12)
 
-Then run:
+## 🌐 Deployment
 
+### Deploy on Render (Recommended for beginners)
+
+**1) Push to GitHub**
 ```bash
-python manage.py collectstatic --noinput
+git add .
+git commit -m "Deploy to Render"
+git push origin main
 ```
 
-Note: SQLite is fine for demos/small local deployments, but PaaS ephemeral storage makes PostgreSQL better for real production.
+**2) Create Render account & Web Service**
+- Go to [render.com](https://render.com)
+- Click **"New +"** → **"Web Service"**
+- Select your GitHub repo: `Garuda-Netra/TriNetra`
 
-## PostgreSQL Switch (Real Deployment)
+**3) Configure Web Service**
+| Field | Value |
+|-------|-------|
+| **Name** | `trinetra` |
+| **Environment** | `Python 3` |
+| **Build Command** | `pip install -r requirements.txt && python manage.py collectstatic --noinput` |
+| **Start Command** | `gunicorn trinetra_web.wsgi --log-file -` |
 
-Current default DB is SQLite for simplicity. To move to PostgreSQL:
+**4) Add Environment Variables** (click "Environment")
+```
+SECRET_KEY = <generate-random-key>
+DEBUG = false
+ALLOWED_HOSTS = trinetra-xxxxx.onrender.com
+CSRF_TRUSTED_ORIGINS = https://trinetra-xxxxx.onrender.com
+```
 
-1. Provision a PostgreSQL instance.
-2. Set `DATABASE_URL`, example:
-    ```bash
-    DATABASE_URL=postgresql://user:password@host:5432/trinetra
-    ```
-3. Install driver in deployment environment (if not preinstalled):
-    ```bash
-    pip install psycopg[binary]
-    ```
-4. Restart app service.
+**5) (Optional) Attach PostgreSQL**
+- Click **"Create"** → **"PostgreSQL"**
+- Render auto-populates `DATABASE_URL` in your Web Service
+- Your app will auto-detect and use it
 
-No code changes are required because settings auto-detect `DATABASE_URL`.
+**6) Deploy**
+- Click **"Create Web Service"**
+- Wait for build (2–5 minutes)
+- Check **"Logs"** tab for status
+
+**Success indicator:**
+```
+Starting gunicorn 22.0.0
+Listening at: 0.0.0.0:10000
+```
+
+### Deploy on Heroku
+
+`Procfile` is included: `web: gunicorn trinetra_web.wsgi --log-file -`
+
+```bash
+# Install Heroku CLI
+heroku login
+heroku create trinetra-app
+git push heroku main
+
+# Set config vars
+heroku config:set DEBUG=false SECRET_KEY=<your-key> ALLOWED_HOSTS=<your-domain>
+
+# Collect static
+heroku run python manage.py collectstatic --noinput
+```
+
+### Deploy on PythonAnywhere
+
+1. Upload/clone project to PythonAnywhere
+2. Create virtualenv: `mkvirtualenv --python=/usr/bin/python3.9 trinetra`
+3. Install: `pip install -r requirements.txt`
+4. Set environment variables in web app settings
+5. Set WSGI file to `trinetra_web.wsgi`
+6. Run: `python manage.py collectstatic --noinput`
+
+### Deploy on Digital Ocean / Custom VPS
+
+```bash
+# On server
+git clone https://github.com/Garuda-Netra/TriNetra.git
+cd TriNetra
+python3 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt gunicorn
+
+# Run with Gunicorn
+gunicorn -w 4 -b 0.0.0.0:8000 trinetra_web.wsgi
+
+# Or with Nginx reverse proxy (recommended for production)
+```
+
+### Use PostgreSQL (Recommended for production)
+
+If you haven't attached a database:
+
+```bash
+# Set DATABASE_URL environment variable
+export DATABASE_URL=postgresql://user:password@host:5432/trinetra
+
+# Install PostgreSQL driver
+pip install psycopg[binary]
+
+# No code changes needed—settings auto-detect!
+```

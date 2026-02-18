@@ -41,6 +41,8 @@ def print_banner() -> None:
     console.print('[red]  "May He liberate us from the bondage of mortality."[/]')
     console.print("[red]  -- Maha Mrityunjaya Mantra, Rig Veda (7.59.12)[/]")
     console.print()
+    console.print("[bold magenta]  Created by Garuda Netra[/bold magenta]")
+    console.print()
 
 
 def print_scan_target(target: str, ip_address: str, total_ports: int) -> None:
