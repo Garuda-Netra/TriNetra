@@ -19,7 +19,7 @@ def env_list(key: str, default: str) -> list[str]:
 
 
 SECRET_KEY = os.getenv("SECRET_KEY", "django-insecure-change-me-for-production")
-DEBUG = env_bool("DEBUG", True)
+DEBUG = env_bool("DEBUG", True)  # ⚠️ WARN: Must be False in production! Set DEBUG=false on Render/Heroku/PythonAnywhere
 ALLOWED_HOSTS: list[str] = env_list("ALLOWED_HOSTS", "127.0.0.1,localhost,testserver")
 CSRF_TRUSTED_ORIGINS = env_list(
     "CSRF_TRUSTED_ORIGINS",
