@@ -12,7 +12,7 @@ Trinetra is a full-stack port scanner with dual interfaces:
 - **CLI**: Fast, scriptable command-line scanning with Rich progress bars
 - **Django Web GUI**: Beautiful, interactive web dashboard with history & export
 - **Shared Backend**: Single scanning engine for both interfaces
-- **Production-Ready**: Configured for Render, Heroku, PythonAnywhere, and custom hosting
+- **Production-Ready**: Configured for Heroku, PythonAnywhere, and custom hosting
 
 ## ✨ Features
 
